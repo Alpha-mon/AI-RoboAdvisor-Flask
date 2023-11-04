@@ -254,7 +254,7 @@ final_df_sequences = []
 for i in range(len(data_values) - T):
     final_df_sequences.append(final_df_values[i:i+T])
 
-X = np.array(final_df_sequences)
+X = np.array(final_df_sequences, dtype=object)
 
 # 생성 및 구분 모델
 

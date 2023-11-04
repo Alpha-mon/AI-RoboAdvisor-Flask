@@ -20,7 +20,7 @@ def predict():
     # 야후 파이낸스 주식 정보 가져오기
     # 주식 종목 지정 필수
 
-    ticker = request.json.get('ticker')
+    ticker = request.json.get("ticker")
     end_date = datetime.now()
     start_date = end_date - timedelta(days=3650)
     data = yf.download(ticker, start=start_date, end=end_date)
@@ -260,8 +260,8 @@ def predict():
     final_df_sequences = []
     for i in range(len(data_values) - T):
         final_df_sequences.append(final_df_values[i:i+T])
-    final_df_sequences = [seq for seq in final_df_sequences if len(seq) == 10]
-    X = np.array(final_df_sequences)
+
+    X = np.array(final_df_sequences, dtype=object)
 
     # 생성 및 구분 모델
 
@@ -374,14 +374,14 @@ def predict():
     print(after_gan_predictions)
 
     # 최종 예측 출력 (평균)
-    average_prediction = np.mean(after_gan_predictions)
+    average_prediction = float(np.mean(after_gan_predictions))
     print(average_prediction)
 
 
-    response = {
+    response_price = {
         'average_prediction' : average_prediction
     }
-    return jsonify(response)
+    return jsonify(response_price)
 
 # Sentiment Analysis for Stock Market Prediction
 @app.route('/predict/market', methods=['POST'])
@@ -726,14 +726,14 @@ def predict2():
     for title in news_df[news_df['sent_score'] <= sent_mean]['title'].head(5):
         print("-", title)
 
-    response_data2 = {
+    response_market = {
         "prediction": "positive" if positive_news_ratio > 0.5 else "negative",
         "positive_news_count": pos_news,
         "negative_news_count": neg_news,
         "positive_news_examples": list(news_df[news_df['sent_score'] > sent_mean]['title'].head(5)),
         "negative_news_examples": list(news_df[news_df['sent_score'] <= sent_mean]['title'].head(5))
     }
-    return jsonify(response_data2)
+    return jsonify(response_market)
 
 # PortfolioOptimization
 
