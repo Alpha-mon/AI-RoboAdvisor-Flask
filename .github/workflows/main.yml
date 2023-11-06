@@ -1,0 +1,35 @@
+name: Deploy Flask in EC2
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: connect EC2 instance and deploy docker images to main server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.AWS_EC2_HOST_IP }}
+          username: ${{ secrets.AWS_EC2_USERNAME }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # 경로 변수 설정
+            APP_DIR=/home/ubuntu/AI-RoboAdvisor-Flask
+          
+            # 저장소에서 최신 코드를 가져온다
+            cd $APP_DIR
+            git pull origin main
+
+            sudo pip install -r requirements.txt
+
+            # Flask 애플리케이션 프로세스를 찾아서 종료합니다.
+            pkill -f 'app.py'
+
+            # 애플리케이션을 재실행합니다.
+            nohup python app.py > flask_app.log 2>&1 &
+
