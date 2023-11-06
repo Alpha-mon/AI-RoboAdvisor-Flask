@@ -26,9 +26,11 @@ jobs:
             if [ ! -d "$APP_DIR" ]; then
               mkdir -p $APP_DIR
               git clone $REPO_URL $APP_DIR
+              git checkout deploy-test
             else
               cd $APP_DIR
               git pull origin main
+              git checkout deploy-test
             fi
 
             sudo pip install -r requirements.txt
