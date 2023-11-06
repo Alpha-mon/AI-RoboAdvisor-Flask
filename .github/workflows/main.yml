@@ -38,7 +38,7 @@ jobs:
             sudo pip3 install -r requirements.txt
 
             # Flask 애플리케이션 프로세스를 찾아서 종료합니다.
-            pkill -f 'python3 app.py'
+            #pkill -f 'python3 app.py'
 
             # 애플리케이션을 재실행합니다.
             nohup python3 app.py > flask_app.log 2>&1 &
