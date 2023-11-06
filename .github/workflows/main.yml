@@ -20,10 +20,16 @@ jobs:
           script: |
             # 경로 변수 설정
             APP_DIR=/home/ubuntu/AI-RoboAdvisor-Flask
+            REPO_URL=https://github.com/Alpha-mon/AI-RoboAdvisor-Flask.git
           
-            # 저장소에서 최신 코드를 가져온다
-            cd $APP_DIR
-            git pull origin main
+            # 만약 APP_DIR이 없다면 생성하고 저장소를 clone
+            if [ ! -d "$APP_DIR" ]; then
+              mkdir -p $APP_DIR
+              git clone $REPO_URL $APP_DIR
+            else
+              cd $APP_DIR
+              git pull origin main
+            fi
 
             sudo pip install -r requirements.txt
 
