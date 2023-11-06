@@ -24,8 +24,8 @@ jobs:
           
             # 만약 APP_DIR이 없다면 생성하고 저장소를 clone
             if [ ! -d "$APP_DIR" ]; then
-              mkdir -p $APP_DIR
-              git clone $REPO_URL $APP_DIR
+              git clone $REPO_URL
+              cd $APP_DIR
               git checkout deploy-test
             else
               cd $APP_DIR
