@@ -994,6 +994,8 @@ def Protfolio():
     from sklearn.preprocessing import MinMaxScaler
     from scipy.optimize import minimize
 
+    print("here is worked!!")
+
     # 사용자로부터 보유 주식 입력 받기
     data = request.json
 
