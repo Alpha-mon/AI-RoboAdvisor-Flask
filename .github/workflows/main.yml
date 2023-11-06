@@ -24,20 +24,22 @@ jobs:
           
             # 만약 APP_DIR이 없다면 생성하고 저장소를 clone
             if [ ! -d "$APP_DIR" ]; then
-              git clone $REPO_URL
-              cd $APP_DIR
-              git checkout deploy-test
+              git clone $REPO_URL AI-RoboAdvisor-Flask
+              cd AI-RoboAdvisor-Flask
             else
-              cd $APP_DIR
+              cd AI-RoboAdvisor-Flask
               git pull origin main
-              git checkout deploy-test
             fi
+            
+            # Checkout the deploy-test branch
+            git checkout deploy-test
 
-            sudo pip install -r requirements.txt
+            # Use pip3 for Python 3.x
+            sudo pip3 install -r requirements.txt
 
             # Flask 애플리케이션 프로세스를 찾아서 종료합니다.
-            pkill -f 'app.py'
+            pkill -f 'python3 app.py'
 
             # 애플리케이션을 재실행합니다.
-            nohup python app.py > flask_app.log 2>&1 &
+            nohup python3 app.py > flask_app.log 2>&1 &
 
