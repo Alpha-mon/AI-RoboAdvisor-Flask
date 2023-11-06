@@ -2,6 +2,12 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+# test
+@app.route('/predict/test', methods=['GET'])
+def testRun():
+    print('run1')
+    return "test run ok"
+
 # Stock Price Prediction Model
 @app.route('/predict/price', methods=['POST'])
 def predictPrice():
