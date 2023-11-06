@@ -35,6 +35,8 @@ jobs:
             git checkout deploy-test
 
             # Use pip3 for Python 3.x
+            sudo apt-get update
+            sudo apt install python3-pip
             sudo pip3 install -r requirements.txt
 
             # Flask 애플리케이션 프로세스를 찾아서 종료합니다.
