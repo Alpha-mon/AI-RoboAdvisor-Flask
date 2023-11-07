@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Stock Price Prediction Model
+# Stock Price Prediction Model, Price Algorithm 7
 @app.route('/predict/price', methods=['POST'])
 def predictPrice():
 
@@ -620,15 +620,13 @@ def predictPrice():
         'average_prediction' : average_prediction,
         'MACD': 100 * MACD_result,
         'STCK': 100 * STCK_result,
-        'Bollinger Bands': 100 * Bollinger_result,
+        'Bollinger': 100 * Bollinger_result,
         'RSI': RSI_result,
         'VR': VR_result,
-        'Williams %R': WR_result,
+        'WR': WR_result,
         'MOK': MOK_result
     }
     return jsonify(response_price)
-    
-
     
 # Sentiment Analysis for Stock Market Prediction
 @app.route('/predict/market', methods=['POST'])
