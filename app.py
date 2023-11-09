@@ -1,4 +1,10 @@
 from flask import Flask, request, jsonify
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.decomposition import PCA
+import random
 
 app = Flask(__name__)
 
@@ -1084,6 +1090,53 @@ def Protfolio():
         response_portfolio["explanations"].append(explanation)
     
     return jsonify(response_portfolio)
+
+@app.route("/recommend_stock", methods = ['POST'])
+
+def recommend_stock():
+    if request.method == 'POST':
+        data = request.json
+        tendency = data.get('tendency')
+        #Request body - tendency <LION - 공격투자형 , SNAKE - 적극투자형, MONKEY - 위험중립형, SHEEP - 안정추구형>
+        
+        df = pd.read_csv("AI-RoboAdvisor-Flask/stock_data.csv", encoding='cp949')
+        selected_features = ['PER', 'PBR', 'ROE', 'ROA', '외국인비율', '매출액증가율']
+        
+        scaler = StandardScaler()
+        df_scaled = scaler.fit_transform(df[selected_features])
+        
+        pca = PCA(n_components=2)
+        df_pca = pca.fit_transform(df_scaled)
+        
+        similarity_metric = cosine_similarity
+        similarity_matrix = similarity_metric(df_pca)
+        
+        weights = {
+            'LION' : [0.8, 0.45, 0.65, 0.7, 0.15, 0.15],
+            'SNAKE' : [0.7, 0.3, 0.6, 0.7, 0.4, 0.3],
+            'MONKEY' :  [0.4, 0.15, 0.35, 0.4, 0.6, 0.65],
+            'SHEEP' : [0.25, 0.1, 0.25, 0.35, 0.7, 0.8]
+        }
+        
+        tendency_weights = np.array(weights[tendency]).reshape(1, -1)
+        df_scaled_tendency = df_scaled * tendency_weights
+        similarity_matrix_tendency = similarity_metric(df_scaled_tendency)
+        
+        stock_index = 0 
+        similar_stocks = list(enumerate(similarity_matrix_tendency[stock_index]))
+        similar_stocks = sorted(similar_stocks, key=lambda x: x[1], reverse=True)
+        
+        filtered_similar_stocks = [stock for stock in similar_stocks if stock[1] >= 0.75]
+        
+        top_n = min(3, len(filtered_similar_stocks))
+        random_selected_stocks = random.sample(filtered_similar_stocks, top_n)
+        
+        recommended_stocks = []
+        for i,score in random_selected_stocks:
+            stock_name = df['종목명'][i]
+            recommended_stocks.append({"stock_name": stock_name})
+            
+    return jsonify({"tendency": tendency, "recommended_stocks": recommended_stocks})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
