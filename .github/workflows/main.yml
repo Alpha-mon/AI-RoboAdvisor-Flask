@@ -1,0 +1,49 @@
+name: Deploy and Run Flask in EC2
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: connect EC2 instance and deploy docker images to main server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.AWS_EC2_HOST_IP }}
+          username: ${{ secrets.AWS_EC2_USERNAME }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # 경로 변수 설정
+            APP_DIR=/home/ubuntu/AI-RoboAdvisor-Flask
+            REPO_URL=https://github.com/Alpha-mon/AI-RoboAdvisor-Flask.git
+          
+            # 만약 APP_DIR이 없다면 생성하고 저장소를 clone
+            if [ ! -d "$APP_DIR" ]; then
+              git clone $REPO_URL AI-RoboAdvisor-Flask
+              cd AI-RoboAdvisor-Flask
+            else
+              cd AI-RoboAdvisor-Flask
+              git pull origin main
+            fi
+
+            # Use pip3 for Python 3.9
+            sudo apt-get update
+            sudo apt install python3-pip -y
+            sudo pip3 install -r requirements.txt
+
+            # Flask 애플리케이션 프로세스를 찾아서 종료합니다.
+            if pgrep -f 'python3 app.py'; then
+              echo "Process found. Stopping 'python3 app.py'."
+              pkill -f 'python3 app.py'
+            else
+              echo "Process not found."
+            fi
+
+            # 애플리케이션을 재실행합니다.
+            nohup python3 app.py > flask_app.log 2>&1 &
+
