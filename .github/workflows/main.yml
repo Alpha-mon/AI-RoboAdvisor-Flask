@@ -39,7 +39,7 @@ jobs:
             # Flask 애플리케이션 프로세스를 찾아서 종료합니다.
             if pgrep -f 'python3 app.py'; then
               echo "Process found. Stopping 'python3 app.py'."
-              pkill -f 'python3 app.py'
+              pkill -f 'python3 app.py' || true  # Ignore the exit status
             else
               echo "Process not found."
             fi
