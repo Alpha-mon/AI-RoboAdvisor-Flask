@@ -1099,7 +1099,7 @@ def recommend_stock():
         tendency = data.get('tendency')
         #Request body - tendency <LION - 공격투자형 , SNAKE - 적극투자형, MONKEY - 위험중립형, SHEEP - 안정추구형>
         
-        df = pd.read_csv("AI-RoboAdvisor-Flask/stock_data.csv", encoding='cp949')
+        df = pd.read_csv("stock_data.csv", encoding='cp949')
         selected_features = ['PER', 'PBR', 'ROE', 'ROA', '외국인비율', '매출액증가율']
         
         scaler = StandardScaler()
@@ -1134,7 +1134,7 @@ def recommend_stock():
         recommended_stocks = []
         for i,score in random_selected_stocks:
             stock_name = df['종목명'][i]
-            recommended_stocks.append({"stock_name": stock_name})
+            recommended_stocks.append(stock_name)
             
     return jsonify({"tendency": tendency, "recommended_stocks": recommended_stocks})
 
