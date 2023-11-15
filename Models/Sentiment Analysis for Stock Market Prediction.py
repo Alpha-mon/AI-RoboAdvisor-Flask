@@ -277,8 +277,8 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
 
-start_date = datetime.datetime.now() - datetime.timedelta(days=30)
-end_date = datetime.datetime.now() - datetime.timedelta(days=5)
+start_date = datetime.datetime.now() - datetime.timedelta(days=5)
+end_date = datetime.datetime.now() - datetime.timedelta(days=1)
 current_date = start_date
 
 news_data = []
@@ -322,7 +322,7 @@ if positive_news_ratio > 0.5:
 else:
     print("미래 주식 시장은 부정적으로 움직일 것으로 예상됩니다.")
 
-    # 각 뉴스의 감성 점수를 바탕으로 긍정적 및 부정적 뉴스 개수 확인 및 출력
+# 각 뉴스의 감성 점수를 바탕으로 긍정적 및 부정적 뉴스 개수 확인 및 출력
 sent_mean = news_df['sent_score'].mean()
 
 pos_news = len(news_df[news_df['sent_score'] > sent_mean])
@@ -339,3 +339,30 @@ for title in news_df[news_df['sent_score'] > sent_mean]['title'].head(5):
 print("\n부정적 뉴스 예시:")
 for title in news_df[news_df['sent_score'] <= sent_mean]['title'].head(5):
     print("-", title)
+
+    
+weight_bilstm = 0.7  # Bi-LSTM 모델에 부여할 가중치
+weight_sentiment = 0.3  # 감성 사전에 부여할 가중치
+
+# Bi-LSTM 모델의 예측 결과와 감성 사전의 점수를 각각 가져오기
+bilstm_scores = predicted.flatten() 
+sentiment_scores = news_df['sent_score'].values 
+
+# 이진 분류 문제라면 임계값을 설정하여 긍정/부정으로 분류
+threshold = 0.7
+
+# 각 비율 계산
+bilstm_positive_ratio = (bilstm_scores > threshold).mean()
+sentiment_positive_ratio = (sentiment_scores > sent_mean).mean()
+
+# 가중 평균 계산
+final_positive_ratio = (weight_bilstm * bilstm_positive_ratio) + (weight_sentiment * sentiment_positive_ratio)
+
+# 결과 출력
+if final_positive_ratio > 0.5:
+    print("종합적으로 긍정적인 결과가 나왔습니다.")
+else:
+    print("종합적으로 부정적인 결과가 나왔습니다.")
+
+print(f"종합적인 긍정 비율: {final_positive_ratio * 100:.2f}%")
+print(f"종합적인 부정 비율: {100 - final_positive_ratio * 100:.2f}%")
