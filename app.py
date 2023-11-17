@@ -679,8 +679,18 @@ def predictMarket():
             detail_response = requests.get(news_url, headers=headers)  # headers 추가
             detail_soup = BeautifulSoup(detail_response.text, 'html.parser')
             date_element = detail_soup.select_one("span.media_end_head_info_datestamp_time")
-            date = date_element.attrs["data-date-time"].split()[0]
-
+            
+            if date_element:
+                date = date_element.attrs["data-date-time"].split()[0]
+                news_data.append({
+                    'title': title,
+                    'date': date
+                })
+            else:
+                # date_element가 None인 경우 처리
+                # 이 뉴스 기사를 건너뛰거나 다르게 처리할 수 있습니다
+                pass
+            
             news_data.append({
                 'title': title,
                 'date': date
