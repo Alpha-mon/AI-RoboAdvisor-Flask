@@ -1,27 +1,28 @@
 from flask import Flask, request, jsonify
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import PCA
-import random
+from keras.layers import Embedding, Bidirectional, LSTM, Dense, LeakyReLU, BatchNormalization
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from keras.optimizers import Adam
+from keras.models import Sequential, Model
+import tensorflow as tf
+import random, requests, time
+import yfinance as yf
+from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
+from konlpy.tag import Okt
+from scipy.optimize import minimize
 
 app = Flask(__name__)
 
 # Stock Price Prediction Model, Price Algorithm 7
 @app.route('/predict/price', methods=['POST'])
 def predictPrice():
-
-    
-    import numpy as np
-    import pandas as pd
-    import tensorflow as tf
-    from keras.models import Sequential
-    from keras.layers import LSTM, Dense
-    import yfinance as yf
-    import pandas as pd
-    import numpy as np
-    from datetime import datetime, timedelta
 
     # 야후 파이낸스 주식 정보 가져오기
     # 주식 종목 지정 필수
@@ -269,12 +270,7 @@ def predictPrice():
 
     X = np.array(final_df_sequences, dtype=object)
 
-    # 생성 및 구분 모델
-
-    from keras.layers import Reshape, Flatten, LeakyReLU, BatchNormalization
-    from keras.models import Model
-    from keras.optimizers import Adam
-
+    # GAN 모델
     # 생성 모델 G (주식 가격의 시퀀스를 생성)
     def build_generator(input_shape=(T, 7)):  # 입력 값 : LSTM 모델 예측 + 6개 지표 값
         model = Sequential()
@@ -420,7 +416,6 @@ def predictPrice():
 
 
     # STCK 계산 함수 (20일 이동평균 사용)
-
 
     def calculate_stck(closing_prices, window=20):
         # 최저 가격과 최고 가격을 계산
@@ -637,21 +632,8 @@ def predictPrice():
 # Sentiment Analysis for Stock Market Prediction
 @app.route('/predict/market', methods=['POST'])
 def predictMarket():
+
     # 뉴스 제목, 일자 크롤링
-
-    import requests
-    from bs4 import BeautifulSoup
-    import datetime
-    import time
-    import pandas as pd
-    from konlpy.tag import Okt
-    from keras.models import Sequential
-    from keras.layers import Embedding, Bidirectional, LSTM, Dense
-    from keras.callbacks import EarlyStopping, ModelCheckpoint
-    from keras.preprocessing.text import Tokenizer
-    from keras.preprocessing.sequence import pad_sequences
-
-
     base_url = "https://news.naver.com/main/main.nhn?mode=LSD&mid=shm&sid1=101&date="
 
     # 1. User-Agent를 설정
@@ -965,10 +947,11 @@ def predictMarket():
     print(f"종합적인 긍정 비율: {final_positive_ratio * 100:.2f}%")
     print(f"종합적인 부정 비율: {100 - final_positive_ratio * 100:.2f}%")
 
+    
     if final_positive_ratio > 0.5:
-            prediction_result = "미래 주식 시장은 긍정적으로 예측됩니다 ."
+            prediction_result = "미래 주식 시장은 긍정적으로 예측됩니다."
     else:
-            prediction_result = "미래 주식 시장은 부정적으로 예측됩니다.."
+            prediction_result = "미래 주식 시장은 부정적으로 예측됩니다."
 
     positive_percentage = final_positive_ratio * 100
     negative_percentage = 100 - positive_percentage
@@ -984,15 +967,6 @@ def predictMarket():
 # PortfolioOptimization
 @app.route('/predict/portfolio', methods=['POST'])
 def Protfolio():
-
-    import numpy as np
-    import pandas as pd
-    import tensorflow as tf
-    from keras.models import Sequential
-    from keras.layers import LSTM, Dense
-    import yfinance as yf
-    from sklearn.preprocessing import MinMaxScaler
-    from scipy.optimize import minimize
 
     # 사용자로부터 보유 주식 입력 받기
     data = request.json
