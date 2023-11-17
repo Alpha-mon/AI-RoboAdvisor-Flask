@@ -644,10 +644,13 @@ def predictMarket():
     import datetime
     import time
     import pandas as pd
+    from konlpy.tag import Okt
+    from keras.models import Sequential
+    from keras.layers import Embedding, Bidirectional, LSTM, Dense
+    from keras.callbacks import EarlyStopping, ModelCheckpoint
+    from keras.preprocessing.text import Tokenizer
+    from keras.preprocessing.sequence import pad_sequences
 
-
-    # 개선할 점 -> 중간에 부정/긍정 단어를 만들어서 딕셔너리 만든 다음에 크롤링해서 감성분석한거랑 매칭해야할 것 같음 !!!!!
-    # 크롤링 시간이 너무 많이 걸림
 
     base_url = "https://news.naver.com/main/main.nhn?mode=LSD&mid=shm&sid1=101&date="
 
@@ -659,12 +662,12 @@ def predictMarket():
     # 시작 날짜와 종료 날짜 설정
     start_date = datetime.datetime.now() - datetime.timedelta(days=30)
     end_date = datetime.datetime.now() - datetime.timedelta(days=5)
-
     current_date = start_date
 
     news_data = []
 
     while current_date <= end_date:
+
         # 2. 요청을 보낼 때 headers 추가
         response = requests.get(base_url + current_date.strftime('%Y%m%d'), headers=headers)
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -680,6 +683,7 @@ def predictMarket():
             detail_soup = BeautifulSoup(detail_response.text, 'html.parser')
             date_element = detail_soup.select_one("span.media_end_head_info_datestamp_time")
             
+            # 요소를 찾지 못한 경우 Pass
             if date_element:
                 date = date_element.attrs["data-date-time"].split()[0]
                 news_data.append({
@@ -687,10 +691,8 @@ def predictMarket():
                     'date': date
                 })
             else:
-                # date_element가 None인 경우 처리
-                # 이 뉴스 기사를 건너뛰거나 다르게 처리할 수 있습니다
                 pass
-            
+
             news_data.append({
                 'title': title,
                 'date': date
@@ -705,7 +707,6 @@ def predictMarket():
     # 뉴스 데이터를 날짜 순으로 정렬
     news_data_sorted = sorted(news_data, key=lambda x: x['date'])
 
-
     # 데이터프레임으로 변환
     news_df = pd.DataFrame(news_data_sorted, columns=['date', 'title'])
 
@@ -716,11 +717,7 @@ def predictMarket():
     # 원하는 날짜 범위만 선택
     news_df = news_df[(news_df['date'] >= start_date_str) & (news_df['date'] <= end_date_str)]
 
-
     # 크롤링한 뉴스 제목 명사 추출
-
-    from konlpy.tag import Okt
-
     # Okt 객체 초기화
     okt = Okt()
 
@@ -730,15 +727,9 @@ def predictMarket():
 
     # 'title' 열의 각 제목에 대하여 명사만 추출
     news_df['nouns'] = news_df['title'].apply(extract_nouns)
-
     print(news_df)
 
     # 코스피 등락율 - 뉴스
-
-    import requests
-    from bs4 import BeautifulSoup
-    import pandas as pd
-
     def get_kospi_closing_prices():
         url = "https://finance.naver.com/sise/sise_index_day.nhn?code=KOSPI"
         headers = {
@@ -767,9 +758,7 @@ def predictMarket():
 
     # 날짜 기준으로 최근 30일의 데이터를 가져온 후, 정렬
     df = df.sort_values(by="Date").tail(30).reset_index(drop=True)
-
     df['Date'] = pd.to_datetime(df['Date'], format='%Y.%m.%d').dt.strftime('%Y-%m-%d')
-
     print(df)
 
     merged_df = pd.merge(news_df, df, left_on='date', right_on='Date', how='inner')
@@ -860,10 +849,7 @@ def predictMarket():
                 score += word_scores[noun]
         return score / (len(noun_list) if len(noun_list) != 0 else 1)
 
-
-
     # 감성사전의 평균 점수 계산
-
     sent_mean = sum(word_scores.values()) / len(word_scores)
     print('감성 사전 평균 점수 : ',sent_mean)
 
@@ -880,19 +866,10 @@ def predictMarket():
     # 평균 점수를 기준으로 라벨링
     merged_df['sent_label'] = merged_df['sent_score'].apply(lambda x: 1 if x > sent_mean else 0)
 
-
-
     result_df = merged_df[['date', 'Up/Down', 'sent_score', 'sent_label', 'title', 'nouns']]
     print(result_df)
 
     # 모델링
-
-    from keras.models import Sequential
-    from keras.layers import Embedding, Bidirectional, LSTM, Dense
-    from keras.callbacks import EarlyStopping, ModelCheckpoint
-    from keras.preprocessing.text import Tokenizer
-    from keras.preprocessing.sequence import pad_sequences
-
     # 1. 데이터 준비
     X_data = merged_df['nouns'].apply(lambda x: ' '.join([word for word in x.split(', ') if len(word) > 1])).values
     Y_data = merged_df['sent_label'].values  # 기존의 'merged_df'를 사용
@@ -1007,6 +984,7 @@ def predictMarket():
 # PortfolioOptimization
 @app.route('/predict/portfolio', methods=['POST'])
 def Protfolio():
+
     import numpy as np
     import pandas as pd
     import tensorflow as tf
