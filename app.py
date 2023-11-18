@@ -178,13 +178,12 @@ def predictPrice():
 
     # LSTM 모델
 
-
     final_df_values = final_df.values
     data_values = data.values
 
-    # 입력 시퀀스에 대한 타임 스텝(T)을 정의합니다.
+    # 입력 시퀀스에 대한 타임 스텝(T)을 정의
 
-    T = 10  # 원하는대로 조정할 수 있습니다.
+    T = 10  # 원하는대로 조정
 
     # 입력 및 타겟을 위한 데이터 시퀀스 생성
     final_df_sequences = []
@@ -209,7 +208,6 @@ def predictPrice():
     # 시퀀스를 넘파이 배열로 변환
     X = np.array(final_df_sequences)
     y = np.array(data_sequences)
-
 
     # 데이터를 훈련 및 테스트 세트로 분할
     split_ratio = 0.8  # 분할 비율을 조정할 수 있습니다.
@@ -674,11 +672,6 @@ def predictMarket():
                 })
             else:
                 pass
-
-            news_data.append({
-                'title': title,
-                'date': date
-            })
 
             # 요청 간에 약간의 지연을 두어 IP 차단을 피하기
             time.sleep(1.5)
