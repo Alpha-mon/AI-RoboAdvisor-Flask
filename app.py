@@ -13,7 +13,9 @@ from keras.models import Sequential, Model
 import tensorflow as tf
 import random, requests, time
 import yfinance as yf
-from datetime import datetime, timedelta
+from datetime import timedelta
+import datetime
+import time
 from bs4 import BeautifulSoup
 from konlpy.tag import Okt
 from scipy.optimize import minimize
