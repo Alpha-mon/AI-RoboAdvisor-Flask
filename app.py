@@ -30,7 +30,7 @@ def predictPrice():
     # 주식 종목 지정 필수
 
     ticker = request.json.get("ticker")
-    end_date = datetime.now()
+    end_date = datetime.datetime.now()
     start_date = end_date - timedelta(days=3650)
     data = yf.download(ticker, start=start_date, end=end_date)
 
@@ -235,7 +235,6 @@ def predictPrice():
 
     # 모델 컴파일
     model.compile(optimizer='adam', loss='mean_squared_error')
-
 
     # 모델 훈련
     model.fit(X_train, y_train, epochs=100, batch_size=32, validation_split=0.2)
